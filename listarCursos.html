@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lista de Cursos da API</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f4f4f9;
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .cursos-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      .curso-card {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-left: 5px solid #007bff;
+      }
+      .curso-card h2 {
+        margin-top: 0;
+        color: #007bff;
+      }
+      .curso-card p {
+        margin: 5px 0;
+        color: #555;
+        font-size: 0.9em;
+      }
+      .curso-card strong {
+        color: #333;
+      }
+      .status-ativo {
+        color: green;
+        font-weight: bold;
+      }
+      .status-inativo {
+        color: red;
+        font-weight: bold;
+      }
+      .price {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #28a745;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Nossos Cursos Disponíveis</h1>
+
+    <div class="cursos-container" id="cursos-list">
+      <p>Carregando cursos...</p>
+    </div>
+
+    <script>
+      const API_URL = "https://mvc-cursos-node.vercel.app/api/v1/cursos";
+
+      async function listarCursos() {
+        const container = document.getElementById("cursos-list");
+        container.innerHTML = "";
+
+        try {
+          const response = await fetch(API_URL);
+          if (!response.ok) {
+            throw new Error(`Erro de rede ou API: ${response.status}`);
+          }
+
+          const cursos = await response.json();
+          if (cursos.length === 0) {
+            container.innerHTML = "<p>Nenhum curso encontrado.</p>";
+            return;
+          }
+          cursos.forEach((curso) => {
+            const precoFormatado = new Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            }).format(curso.preco);
+            const statusText = curso.ativo === 1 ? "Ativo" : "Inativo";
+            const statusClass =
+              curso.ativo === 1 ? "status-ativo" : "status-inativo";
+
+            const cardHtml = `
+                        <div class="curso-card">
+                            <h2>${curso.nome}</h2>
+                            <p><strong>Descrição:</strong> ${curso.descricao}</p>
+                            <p><strong>Categoria:</strong> ${curso.categoria}</p>
+                            <p><strong>Carga Horária:</strong> ${curso.carga_horaria} horas</p>
+                            <p><strong>Status:</strong> <span class="${statusClass}">${statusText}</span></p>
+                            <div class="price">${precoFormatado}</div>
+                        </div>
+                    `;
+            container.innerHTML += cardHtml;
+          });
+        } catch (error) {
+          console.error("Erro ao buscar os cursos:", error);
+          container.innerHTML = `<p style="color: red;">Não foi possível carregar os cursos. Erro: ${error.message}</p>`;
+        }
+      }
+
+      listarCursos();
+    </script>
+  </body>
+</html>
